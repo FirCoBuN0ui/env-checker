@@ -1,7 +1,8 @@
 import sys
 import importlib.util
 
-packages = ["requests", "pandas", "numpy"]
+default_packages = ["requests", "pandas", "numpy"]
+packages = sys.argv[1:] if len(sys.argv) > 1 else default_packages
 
 print("Python version:", sys.version.split()[0])
 print("Package check:")
