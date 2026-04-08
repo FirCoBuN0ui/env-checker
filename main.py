@@ -1,4 +1,5 @@
 import sys
+import json
 import importlib.util
 from pathlib import Path
 
@@ -92,6 +93,10 @@ def main():
         print(HELP_TEXT)
         return 0
 
+    json_mode = "--json" in args
+    if json_mode:
+        args = [a for a in args if a != "--json"]
+
     try:
         packages = resolve_packages(args)
     except Exception as e:
@@ -102,22 +107,42 @@ def main():
         print("No valid packages to check.")
         return 2
 
-    print("Python version:", sys.version.split()[0])
-    print(f"Checking {len(packages)} package(s): {packages}")
-    print("-" * 40)
+    python_version = sys.version.split()[0]
+    results = []
+    installed = []
+    missing = []
 
-    installed_count = 0
     for pkg in packages:
         ok = is_installed(pkg)
+        results.append({"name": pkg, "installed": ok})
         if ok:
-            installed_count += 1
-        print(f"- {pkg}: {'installed' if ok else 'not installed'}")
+            installed.append(pkg)
+        else:
+            missing.append(pkg)
 
-    print("-" * 40)
-    print(f"Summary: {installed_count}/{len(packages)} installed")
+    if json_mode:
+        payload = {
+            "python_version": python_version,
+            "checked_packages": len(packages),
+            "installed": installed,
+            "missing": missing,
+            "summary": {
+                "installed_count": len(installed),
+                "missing_count": len(missing),
+                "all_installed": len(missing) == 0,
+            },
+        }
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+    else:
+        print("Python version:", python_version)
+        print(f"Checking {len(packages)} package(s): {packages}")
+        print("-" * 40)
+        for r in results:
+            print(f"- {r['name']}: {'installed' if r['installed'] else 'not installed'}")
+        print("-" * 40)
+        print(f"Summary: {len(installed)}/{len(packages)} installed")
 
-    return 0 if installed_count == len(packages) else 1
-
+    return 0 if len(missing) == 0 else 1
 
 if __name__ == "__main__":
     raise SystemExit(main())
