@@ -36,7 +36,7 @@ def main():
 
     if any(a in ("-h", "--help") for a in args):
         print(HELP_TEXT)
-        return
+        return 0
 
     packages = normalize_packages(args) if args else DEFAULT_PACKAGES
 
@@ -54,6 +54,9 @@ def main():
     print("-" * 40)
     print(f"Summary: {installed_count}/{len(packages)} installed")
 
+    # 关键：给自动化环境返回退出码
+    return 0 if installed_count == len(packages) else 1
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
