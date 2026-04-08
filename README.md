@@ -21,3 +21,7 @@ Package check:
 - pandas: not installed
 - numpy: not installed
 ```
+## Exit codes
+
+- `0`: all checked packages are installed
+- `1`: at least one checked package is not installed
